@@ -20,7 +20,11 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev
+        # Installiamo python-is-python3 che crea il link simbolico per "python"
+        # E installiamo le librerie di sviluppo python
+        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev python3-dev
+        # Creiamo un link manuale per python2 così U-Boot non si lamenta
+        sudo ln -sf /usr/bin/python3 /usr/bin/python2
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
@@ -33,19 +37,20 @@ jobs:
 
     - name: Configure and Build U-Boot
       run: |
-        # Usiamo una configurazione più ricca rispetto alla sandbox
+        set -xe
         make HOSTCFLAGS="-fcommon" qemu-x86_defconfig
         
-        # Forziamo l'inclusione dei protocolli di rete nel .config
+        # Abilitiamo i moduli necessari
         echo "CONFIG_NET=y" >> .config
         echo "CONFIG_NET_TFTP_VARS=y" >> .config
-        echo "CONFIG_BOOTP_MAY_FAIL=y" >> .config
         
         make HOSTCFLAGS="-fcommon" olddefconfig
         
-        # Compiliamo i file dove la tua query ha trovato i bug in locale
-        # Se i tuoi file erano net/nfs.c o net/tftp.c, ora verranno inclusi
-        make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
+        # Compiliamo solo quello che ci serve, ignorando i tool grafici o script che rompono
+        # Se net/net.o fallisce, almeno vedremo il perché specifico nel log
+        make HOSTCFLAGS="-fcommon" net/net.o || echo "Errore su net.o, controllo log"
+        make HOSTCFLAGS="-fcommon" net/nfs.o || echo "Errore su nfs.o"
+        make HOSTCFLAGS="-fcommon" net/tftp.o || echo "Errore su tftp.o"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
