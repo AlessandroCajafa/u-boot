@@ -23,25 +23,23 @@ jobs:
     # -------------------------------
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v3  # o v4, se preferisci aggiornare
       with:
         languages: cpp
-        config-file: ./.github/codeql-config.yml
+        build-mode: manual
+        # Usiamo il "+" per dire: "Esegui le tue standard MA AGGIUNGI anche la mia"
+        queries: +./.github/queries/11_taint_tracking_input_val.ql
 
-    - name: Configure and Build U-Boot
+    - name: Build U-Boot
       run: |
+        set -xe 
+        sudo apt-get update
+        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev
+        
         make HOSTCFLAGS="-fcommon" sandbox_defconfig
-        # Abilitiamo manualmente i protocolli di rete nella configurazione
-        echo "CONFIG_NET=y" >> .config
-        echo "CONFIG_CMD_NET=y" >> .config
-        echo "CONFIG_NET_TFTP_VARS=y" >> .config
-        
-        # Aggiorniamo la configurazione basandoci sui nuovi flag
-        make HOSTCFLAGS="-fcommon" olddefconfig
-        
-        # Ora compiliamo i file bersaglio
+        # Forza la compilazione degli oggetti di rete
         make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
-        make HOSTCFLAGS="-fcommon" -j2
+        make HOSTCFLAGS="-fcommon" -j$(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
