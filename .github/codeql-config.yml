@@ -1,0 +1,5 @@
+name: "Custom CodeQL Config"
+
+queries:
+  - name: Esegui la mia query di Taint Tracking
+    query: ./.github/queries/11_taint_tracking_input_val.ql
