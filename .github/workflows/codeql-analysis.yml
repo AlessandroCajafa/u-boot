@@ -31,7 +31,15 @@ jobs:
     - name: Configure and Build U-Boot
       run: |
         make HOSTCFLAGS="-fcommon" sandbox_defconfig
-        # Diciamo al compilatore di ignorare la sandbox e compilare i 4 sospettati principali
+        # Abilitiamo manualmente i protocolli di rete nella configurazione
+        echo "CONFIG_NET=y" >> .config
+        echo "CONFIG_CMD_NET=y" >> .config
+        echo "CONFIG_NET_TFTP_VARS=y" >> .config
+        
+        # Aggiorniamo la configurazione basandoci sui nuovi flag
+        make HOSTCFLAGS="-fcommon" olddefconfig
+        
+        # Ora compiliamo i file bersaglio
         make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
         make HOSTCFLAGS="-fcommon" -j2
 
