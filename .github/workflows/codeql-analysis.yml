@@ -31,13 +31,21 @@ jobs:
         # Usiamo il "+" per FORZARE l'aggiunta della tua query a quelle di sistema
         queries: +./.github/queries/11_taint_tracking_input_val.ql
 
-    - name: Build U-Boot (Manual)
+    - name: Configure and Build U-Boot
       run: |
-        # Usiamo i comandi dal tuo screenshot per sicurezza
-        make HOSTCFLAGS="-fcommon" sandbox_defconfig
-        # Forza la compilazione del codice di rete (dove c'è il tuo bug)
+        # Usiamo una configurazione più ricca rispetto alla sandbox
+        make HOSTCFLAGS="-fcommon" qemu-x86_defconfig
+        
+        # Forziamo l'inclusione dei protocolli di rete nel .config
+        echo "CONFIG_NET=y" >> .config
+        echo "CONFIG_NET_TFTP_VARS=y" >> .config
+        echo "CONFIG_BOOTP_MAY_FAIL=y" >> .config
+        
+        make HOSTCFLAGS="-fcommon" olddefconfig
+        
+        # Compiliamo i file dove la tua query ha trovato i bug in locale
+        # Se i tuoi file erano net/nfs.c o net/tftp.c, ora verranno inclusi
         make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
-        make HOSTCFLAGS="-fcommon" -j$(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
