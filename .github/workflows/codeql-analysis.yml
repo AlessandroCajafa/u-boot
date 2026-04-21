@@ -3,6 +3,8 @@ name: "CodeQL Analysis"
 on:
   push:
     branches: [ master ]
+  # Aggiungiamo questo (punto 1 dei tuoi suggerimenti) per poterlo lanciare a mano
+  workflow_dispatch:
 
 jobs:
   analyze:
@@ -15,29 +17,25 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # --- AGGIUNGIAMO QUESTO STEP ---
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev
-    # -------------------------------
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3  # o v4, se preferisci aggiornare
+      uses: github/codeql-action/init@v3
       with:
         languages: cpp
+        # Fondamentale dallo screenshot: evita che CodeQL chiuda il database troppo presto
         build-mode: manual
-        # Usiamo il "+" per dire: "Esegui le tue standard MA AGGIUNGI anche la mia"
+        # Usiamo il "+" per FORZARE l'aggiunta della tua query a quelle di sistema
         queries: +./.github/queries/11_taint_tracking_input_val.ql
 
-    - name: Build U-Boot
+    - name: Build U-Boot (Manual)
       run: |
-        set -xe 
-        sudo apt-get update
-        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev
-        
+        # Usiamo i comandi dal tuo screenshot per sicurezza
         make HOSTCFLAGS="-fcommon" sandbox_defconfig
-        # Forza la compilazione degli oggetti di rete
+        # Forza la compilazione del codice di rete (dove c'è il tuo bug)
         make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
         make HOSTCFLAGS="-fcommon" -j$(nproc)
 
