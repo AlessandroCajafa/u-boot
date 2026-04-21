@@ -26,8 +26,8 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: cpp
+        # Usiamo solo il puntatore alla tua query, senza comandi extra che bloccano tutto
         queries: ./.github/queries/11_taint_tracking_input_val.ql
-        disable-default-queries: true
 
     - name: Configure and Build U-Boot
       run: |
