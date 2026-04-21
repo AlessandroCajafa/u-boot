@@ -46,5 +46,5 @@ import MyTaint::PathGraph
 
 from MyTaint::PathNode source, MyTaint::PathNode sink
 where MyTaint::flowPath(source, sink) 
-select sink, source, sink, "Network byte swap flows to memcpy"
+select sink.getNode(), source, sink, "Network byte swap flows to memcpy"
 
