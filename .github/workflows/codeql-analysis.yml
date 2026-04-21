@@ -31,8 +31,8 @@ jobs:
     - name: Configure and Build U-Boot
       run: |
         make HOSTCFLAGS="-fcommon" sandbox_defconfig
-        # Compiliamo esplicitamente la cartella net/ per far scattare la trappola
-        make HOSTCFLAGS="-fcommon" net/
+        # Diciamo al compilatore di ignorare la sandbox e compilare i 4 sospettati principali
+        make HOSTCFLAGS="-fcommon" net/net.o net/nfs.o net/tftp.o net/bootp.o
         make HOSTCFLAGS="-fcommon" -j2
 
     - name: Perform CodeQL Analysis
