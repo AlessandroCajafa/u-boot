@@ -1,3 +1,11 @@
+/**
+ * @name Taint Tracking Input Validation (La mia Query)
+ * @description Rileva il flusso di dati non validato da ntohl a memcpy
+ * @kind path-problem
+ * @problem.severity critical
+ * @id cpp/taint-tracking-custom
+ */
+
 import cpp
 import semmle.code.cpp.dataflow.TaintTracking
 
