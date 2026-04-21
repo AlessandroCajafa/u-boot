@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl2-dev
+        sudo apt-get install -y bc bison flex libssl-dev make gcc libsdl1.2-dev
     # -------------------------------
 
     - name: Initialize CodeQL
@@ -30,10 +30,8 @@ jobs:
 
     - name: Configure and Build U-Boot
       run: |
-        export HOSTCFLAGS="-fcommon"
-        export CFLAGS="-fcommon"
-        make sandbox_defconfig
-        make -j2
+        make HOSTCFLAGS="-fcommon" sandbox_defconfig
+        make HOSTCFLAGS="-fcommon" -j2
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
